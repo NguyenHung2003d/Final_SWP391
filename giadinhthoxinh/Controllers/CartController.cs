@@ -141,57 +141,76 @@ namespace giadinhthoxinh.Controllers {
             return RedirectToAction("Cart");
         }
 
+        public ActionResult OrderSuccess() {
+            return View(); // Render the OrderSuccess view
+        }
+
+
         [HttpPost]
         public ActionResult Order(int totalAmount) {
+            // Session data management for user/order details
             Session["sDeliveryAddress"] = Request.Form["sDeliveryAddress"];
             Session["sCustomerName"] = Request.Form["sCustomerName"];
             Session["sCustomerPhone"] = Request.Form["sCustomerPhone"];
-            Session["TongTien"] = totalAmount.ToString();
-            if (Session["User"] == null || Session["User"].ToString() == "") {
-                return RedirectToAction("Login", "User");
-            }
-            if (Session["User"] == null) {
-                RedirectToAction("Index", "Home");
+            Session["totalAmount"] = totalAmount.ToString();
+
+            // 1. User Authentication Check:
+            var currentUser = Session["User"] as tblUser; // Improved casting
+            if (currentUser == null) {
+                return RedirectToAction("Login", "User"); // Redirect to login if not authenticated
             }
 
-            if (int.Parse(Request.Form["iDeliveryMethod"]) == 1) {
-                tblOrder ddh = new tblOrder();
-                List<ProductInCart> gh = LayGioHang();
+            int iDeliveryMethod = int.Parse(Request.Form["iDeliveryMethod"]);
 
-                tblUser kh = (tblUser)Session["User"];
-                ddh.FK_iAccountID = kh.PK_iAccountID;
-                ddh.sDeliveryAddress = Request.Form["sDeliveryAddress"];
-                ddh.sCustomerName = Request.Form["sCustomerName"];
-                ddh.sCustomerPhone = Request.Form["sCustomerPhone"];
-                ddh.iDeliveryMethod = 1;
-                ddh.iPaid = 0;
-                ddh.dInvoidDate = DateTime.Now;
-                ddh.fSurcharge = float.Parse(TongTien().ToString());
-                ddh.sState = "Chờ xác nhận";
-                ddh.iTotal = totalAmount;
+            // 2. Handle Cash on Delivery
+            if (iDeliveryMethod == 1) {
+                // Create a new order with relevant details
+                tblOrder ddh = new tblOrder {
+                    FK_iAccountID = currentUser.PK_iAccountID,
+                    sDeliveryAddress = Request.Form["sDeliveryAddress"],
+                    sCustomerName = Request.Form["sCustomerName"],
+                    sCustomerPhone = Request.Form["sCustomerPhone"],
+                    iDeliveryMethod = 1,
+                    iPaid = 0,
+                    dInvoidDate = DateTime.Now,
+                    fSurcharge = float.Parse(TongTien().ToString()),
+                    sState = "Chờ xác nhận",
+                    iTotal = totalAmount
+                };
+
                 db.tblOrders.Add(ddh);
-                db.SaveChanges();
+                db.SaveChanges(); // Save the order before adding details
+
+                // Add checkout details for each item in the cart
+                List<ProductInCart> gh = LayGioHang();
                 foreach (var item in gh) {
-                    tblCheckoutDetail ctDH = new tblCheckoutDetail();
-                    ctDH.FK_iOrderID = ddh.PK_iOrderID;
-                    ctDH.FK_iProductID = item.ProductID;
-                    ctDH.iQuantity = item.Quantity;
-                    ctDH.fPrice = (double)item.Price;
+                    tblCheckoutDetail ctDH = new tblCheckoutDetail {
+                        FK_iOrderID = ddh.PK_iOrderID,
+                        FK_iProductID = item.ProductID,
+                        iQuantity = item.Quantity,
+                        fPrice = (double)item.Price
+                    };
                     db.tblCheckoutDetails.Add(ctDH);
 
+                    // Update product quantity
                     var product = db.tblProducts.Find(item.ProductID);
                     if (product != null) {
                         product.iQuantity -= item.Quantity;
                     }
                 }
-                db.SaveChanges();
-                Session["GioHang"] = null;
-                return RedirectToAction("Index", "Home");
-            }
 
-            var vnpayUrl = CreateVNPayPaymentRequest(totalAmount);
-            return Redirect(vnpayUrl);
+                db.SaveChanges(); // Save all changes to the database
+                Session["GioHang"] = null; // Clear the cart after successful order
+
+                // 3. Redirect to Order Success page
+                return RedirectToAction("OrderSuccess");
+            } else {
+                // 4. Handle other Payment Methods (VNPay)
+                var vnpayUrl = CreateVNPayPaymentRequest(totalAmount);
+                return Redirect(vnpayUrl);
+            }
         }
+
 
         private string CreateVNPayPaymentRequest(decimal totalAmount) {
             var vnpay = new VnPayLibrary();

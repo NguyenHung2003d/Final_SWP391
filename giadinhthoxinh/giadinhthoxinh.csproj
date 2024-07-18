@@ -461,6 +461,7 @@
     <Content Include="Scripts\jquery-3.7.1.slim.min.js" />
     <Content Include="Scripts\jquery-3.7.1.slim.min.map" />
     <Content Include="Scripts\jquery-3.7.1.min.map" />
+    <Content Include="Views\Cart\OrderSuccess.cshtml" />
     <None Include="Views\Cart\VNPayReturn.cshtml" />
     <Compile Include="VnPayLibrary.cs" />
     <Compile Include="Controllers\CartController.cs" />
