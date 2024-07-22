@@ -1,0 +1,70 @@
+﻿@model List<giadinhthoxinh.Models.tblCheckoutDetail>
+@using giadinhthoxinh.Models;
+
+@{
+    ViewBag.Title = "Order Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="~/Content/assets/styles/Index1.css" rel="stylesheet" />
+
+<div class="new_arrivals">
+    <div class="page_selection">
+        <section class="gradient-custom" style="background-color: #8fc4b7;">
+            <div class="container py-5">
+                <div class="row d-flex justify-content-center my-4">
+                    <div class="col-md-7">
+                        <div class="card mb-4">
+                            @if (Model != null && Model.Any()) {
+                                var groupedOrders = Model.GroupBy(x => x.FK_iOrderID);
+                                foreach (var orderGroup in groupedOrders) {
+                                    <div class="card-header py-3">
+                                        <h5 class="mb-0">Đơn hàng @orderGroup.Key</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        @foreach (var item in orderGroup) {
+                                            <div class="row">
+                                                <div class="col-lg-3 col-md-12 mb-4 mb-lg-0">
+                                                    <div class="bg-image hover-overlay hover-zoom ripple rounded" data-mdb-ripple-color="light">
+                                                        <img src="@Url.Content(item.tblProduct.sImage)" class="w-100" alt="Ảnh sản phẩm" />
+                                                        <a href="#!">
+                                                            <div class="mask" style="background-color: rgba(251, 251, 251, 0.2)"></div>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-5 col-md-6 mb-4 mb-lg-0">
+                                                    <p><strong>@item.tblProduct.sProductName</strong></p>
+                                                    <p>Số lượng: @item.iQuantity</p>
+                                                    <p>Đơn giá: @item.fPrice VNĐ</p>
+                                                    <p>Thành tiền: @String.Format("{0:0,0}", item.fPrice * item.iQuantity) VNĐ</p>
+                                                    <p>Ngày mua: @item.tblOrder.dInvoidDate</p>
+                                                    <p>Phương thức thanh toán: @(item.tblOrder.iDeliveryMethod == 0 ? "Chuyển khoản" : "Tiền mặt")</p>
+                                                    <p>Trạng thái đơn hàng: @item.tblOrder.sState</p>
+                                                    <button class="btn btn-primary" onclick="trackOrder(@item.tblOrder.PK_iOrderID)">Theo dõi đơn hàng</button>
+                                                </div>
+                                            </div>
+                                            <hr class="my-2 custom-hr" />
+                                        }
+                                    </div>
+                                }
+                                <div class="card-footer">
+                                    <h5 class="mb-0">Tổng số tiền: @String.Format("{0:0,0}", ViewBag.TongTien) VNĐ</h5>
+                                </div>
+                            } else {
+                                <div class="card-body">
+                                    <p>Không có đơn hàng nào.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+    function trackOrder(orderId) {
+        window.location.href = '@Url.Action("TrackOrder", "Cart")?orderId=' + orderId;
+    }
+</script>
