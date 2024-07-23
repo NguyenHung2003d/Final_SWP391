@@ -1,0 +1,39 @@
+﻿@{
+    ViewBag.Title = "VNPay Return";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="~/Content/assets/styles/checkout.css" rel="stylesheet" />
+
+<div class="container py-5">
+    <div class="row d-flex justify-content-center my-4">
+        <div class="col-md-6">
+            <div id="paymentResult" class="card mb-4" style="display: none;">
+                <div class="card-header py-3 bg-success text-white">
+                    <h4 class="mb-0">Thanh Toán Thành Công!</h4>
+                </div>
+                <div class="card-body">
+                    <p id="messageContent">@ViewBag.Message</p>
+                    <div class="mt-4">
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-primary">Quay về trang chủ</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var message = '@ViewBag.Message';
+        if (message) {
+            var paymentResultCard = document.getElementById('paymentResult');
+            var messageContent = document.getElementById('messageContent');
+
+            messageContent.textContent = message; // Đặt nội dung tin nhắn từ ViewBag
+            paymentResultCard.style.display = 'block'; // Hiển thị thông báo
+
+            // Hiệu ứng thông báo (ví dụ: fade in)
+            paymentResultCard.classList.add('fade-in');
+        }
+    });
+</script>

@@ -1,0 +1,172 @@
+﻿﻿@model giadinhthoxinh.Models.tblOrder
+
+@{
+    ViewBag.Title = "Track Order";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentStep = 1;
+
+    switch (Model.sState) {
+        case "Chờ xác nhận":
+            currentStep = 1;
+            break;
+        case "Đang giao hàng":
+            currentStep = 2;
+            break;
+        case "Hoàn Thành":
+            currentStep = 3;
+            break;
+    }
+}
+
+<div style="padding: 160px 0px" class="container">
+    <div class="order-container">
+        <div class="progress-bar">
+            <div class="step @(currentStep >= 1 ? "active" : "")">
+                Chờ xác nhận
+            </div>
+            <div class="step @(currentStep >= 2 ? "active" : "")">
+                Đang giao hàng
+            </div>
+            <div class="step @(currentStep >= 3 ? "active" : "")">
+                Hoàn thành
+            </div>
+        </div>
+
+        <div class="order-details">
+            <table class="order-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.tblCheckoutDetails) {
+                        <tr>
+                            <td>
+                                <img src="@Url.Content(item.tblProduct.sImage)" alt="@item.tblProduct.sProductName" class="item-image">
+                                @item.tblProduct.sProductName
+                            </td>
+                            <td>@item.iQuantity</td>
+                            <td>@string.Format("{0:C}", item.fPrice * item.iQuantity)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="order-summary">
+                <div class="summary-row">
+                    <span>Total order:</span>
+                    <span class="price">@string.Format("{0:C}", Model.tblCheckoutDetails.Sum(x => x.fPrice * x.iQuantity))</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total ship:</span>
+                    <span class="price">@string.Format("{0:C}", Model.tblCheckoutDetails.Sum(x => x.fPrice * x.iQuantity) + 11.34)</span> <!-- Replace with dynamic shipping price if available -->
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-secondary">Rate</button>
+            <button class="btn btn-primary">Chat with Shop</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .order-container {
+        margin-top: 20px;
+    }
+
+    .progress-bar {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+
+        .progress-bar .step {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-bottom: 2px solid #ccc;
+            position: relative;
+        }
+
+            .progress-bar .step.active {
+                border-bottom: 8px solid #28a745;
+                font-weight: bold;
+            }
+
+            .progress-bar .step::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 0;
+                width: 100%;
+                height: 2px;
+                background-color: #ccc;
+                z-index: -1;
+            }
+
+            .progress-bar .step.active::before {
+                background-color: #28a745;
+            }
+
+            .progress-bar .step:first-child::before {
+                display: none;
+            }
+
+    .order-details {
+        margin-top: 20px;
+    }
+
+    .order-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+
+        .order-table th, .order-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .order-table th {
+            background-color: #f2f2f2;
+        }
+
+    .item-image {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        margin-right: 10px;
+    }
+
+    .order-summary {
+        margin-top: 20px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+    }
+
+        .summary-row.total {
+            font-weight: bold;
+        }
+
+    .action-buttons {
+        margin-top: 20px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+        .action-buttons .btn {
+            flex: 1;
+            margin: 0 5px;
+        }
+</style>
